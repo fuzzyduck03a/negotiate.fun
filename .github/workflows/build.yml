@@ -36,10 +36,9 @@ jobs:
         run: |
           set -x
           {
-            echo "sha_short=$(git rev-parse --short HEAD)"
-            echo "d_version='${{ github.ref_name }}-$(git rev-parse --short HEAD)'"
-            echo "sbom_path='${{ github.workspace }}/sbom.spdx.json'"
-            echo "dist_glob='${{ github.workspace }}/build/client/**'"
+            echo "sha_short=$(git rev-parse --short ${{ github.event.pull_request.head.sha || github.sha }})"
+            echo "d_version=$(git rev-parse --short ${{ github.event.pull_request.head.sha || github.sha }})"
+            echo "sbom_path=sbom.spdx.json"
           } > "$GITHUB_OUTPUT"
 
       - name: Build
