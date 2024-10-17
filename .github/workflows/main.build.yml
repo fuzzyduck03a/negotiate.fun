@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-name: Build & Publish PR to Cloudflare
+name: Build & Publish Head of Development to Cloudflare
 
 on:
   push:
@@ -32,4 +32,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ github.sha }} --commit-msg "${{ github.event.head_commit.message }}" --commit-dirty=true
+          command: pages deploy --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ github.sha }} --commit-message "${{ github.event.head_commit.message }}" --commit-dirty=true
