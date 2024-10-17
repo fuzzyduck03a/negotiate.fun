@@ -45,6 +45,7 @@ jobs:
       - name: Build
         env:
           VITE_DVERSION: ${{ steps.ovars.outputs.d_version  }}
+          VITE_DREF: ${{ github.ref_name }}
         run: npm install && npm run build
 
       - name: Generate an SBOM
