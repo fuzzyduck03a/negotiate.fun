@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MIT
+# Based on: https://github.com/comcast-cdn/trafficcontrol/blob/main/.github/workflows/weasel.yml
+
+name: Weasel License checks
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+
+jobs:
+  weasel:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run weasel
+        run: |
+          # Image is licenseweasel/weasel:v0.4
+          docker run --rm --workdir=/github/workspace --volume="${GITHUB_WORKSPACE}:/github/workspace" licenseweasel/weasel@sha256:85196092a84315d2ebb9db32f3f6113d288256dba7f7855ca0d3483ef787cb4e

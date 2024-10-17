@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT
+
+public/favicon.ico, MIT
+.prettierrc.json, MIT
+package.json, MIT
+package-lock.json, MIT
+tsconfig.json, MIT

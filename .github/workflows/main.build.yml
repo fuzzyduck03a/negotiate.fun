@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: MIT
+name: Build & Publish PR to Cloudflare
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: build
+
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      d_version: ${{ steps.vars.outputs.d_version }}
+
+    steps:
+      - name: Pull down the build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact-name }}
+          run-id: ${{ needs.build.outputs.artifact-id }}
+
+      - name: Move the sbom into the webroot
+        run: mv ${{ steps.vars.outputs.sbom_path }} ${{ github.workspace }}/build/client/
+
+      # Use the old action because the new one doesn't support getting the url output yet
+      # https://github.com/cloudflare/wrangler-action/issues/300
+      - name: Publish a new production release on Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        id: cloudflare-publish
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ github.sha }} --commit-msg "${{ github.event.head_commit.message }}" --commit-dirty=true

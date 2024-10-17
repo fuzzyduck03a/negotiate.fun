@@ -1,0 +1,71 @@
+# SPDX-License-Identifier: MIT
+
+name: Common Build Workflow
+
+on:
+  workflow_call:
+    outputs:
+      artifact-id:
+        description: "The upload ID of build artifacts"
+        value: ${{ jobs.build.outputs.artifact-id  }}
+      artifact-name:
+        description: "The name of build artifacts"
+        value: ${{ jobs.build.outputs.d_version }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      d_version: ${{ steps.vars.outputs.d_version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set outputs
+        id: vars
+        run: |
+          set -x
+          {
+            echo "sha_short=$(git rev-parse --short HEAD)"
+            echo "d_version='${{ github.ref_name }}-${{ steps.vars.outputs.sha_short }}'"
+            echo "sbom_path='${{ github.workspace }}/sbom.spdx.json'"
+            echo "dist_glob='${{ github.workspace }}/build/client/**'"
+          } > "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          VITE_DVERSION: ${{  d_version }}
+        run: npm install && npm run build
+
+      - name: Generate an SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          format: 'spdx-json'
+          output-file: ${{ steps.vars.outputs.sbom_path }}
+
+      - name: Pack the build artifacts
+        run: zip -r ${{ steps.vars.outputs.d_version }}.zip ./* -r
+
+      - name: Attest
+        uses: actions/attest-sbom@v1
+        with:
+          subject-path: ${{ steps.vars.outputs.d_version }}.zip
+          sbom-path: ${{ steps.vars.outputs.sbom_path }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        id: upload
+        with:
+          name: ${{ steps.vars.outputs.d_version }}
+          path: |
+            ${{ steps.vars.outputs.dist_glob }}
+            ${{ steps.vars.outputs.d_version }}.zip
+            ${{ steps.vars.outputs.sbom_path }}
+          retention-days: 5
+          if-no-files-found: error
