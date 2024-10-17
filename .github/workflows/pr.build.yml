@@ -3,7 +3,8 @@ name: Build & Publish PR to Cloudflare
 
 on:
   pull_request:
-    types: [ opened, reopened, ready_for_review, synchronize ]
+    types: [opened, reopened, ready_for_review, synchronize]
+
 jobs:
   build_pr:
     uses: ./.github/workflows/build.yml

@@ -51,7 +51,8 @@ jobs:
         uses: anchore/sbom-action@v0
         with:
           format: 'spdx-json'
-#          output-file: ${{ steps.vars.outputs.sbom_path }}
+          # github-token: ${{ secrets.GITHUB_TOKEN }}
+          output-file: ${{ steps.ovars.outputs.sbom_path }}
 
       - name: Pack the build artifacts
         run: zip -r ${{ steps.ovars.outputs.d_version }}.zip ./* -r

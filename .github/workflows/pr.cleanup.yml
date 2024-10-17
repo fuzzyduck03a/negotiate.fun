@@ -21,5 +21,5 @@ jobs:
           JQ_FILTER: '.result[]| select(.environment == "preview" and .deployment_trigger.metadata.branch == "${{ github.ref_name }}").id'
         run: |
           set -exuo pipefail;
-          curl -X GET ${{ env.API_HEADERS }} "${{ env.API_URL }}" | jq -rc '${{ env.JQ_FILTER }}' | while read ID; do curl -X DELETE ${{ env.API_HEADERS }} "${{ env.API_URL }}/$ID?force=true"; done | jq -Ss
+          curl -X GET ${{ env.API_HEADERS }} "${{ env.API_URL }}" | jq -rc '${{ env.JQ_FILTER }}' | while read -r ID; do curl -X DELETE ${{ env.API_HEADERS }} "${{ env.API_URL }}/$ID?force=true"; done | jq -Ss
 
