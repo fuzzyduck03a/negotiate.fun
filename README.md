@@ -1,4 +1,4 @@
-<!--// SPDX-License-Identifier: MIT)-->
+<!-- SPDX-License-Identifier: MIT -->
 # negotiate.fun
 
 This is a tool to aid kink negotiation and self-reflection.  It contains adult language and deals with adult subjects.
