@@ -30,7 +30,10 @@ export default function Index() {
       <h3>Coming Soon</h3>
       <a href={`${import.meta.env.BASE_URL}`}>Source Repository</a>
       <p>
-        Version: {`${import.meta.env.DVERSION}`}
+        Version: {`${import.meta.env.VITE_DREF}`}
+      </p>
+      <p>
+        Changeset: {`${import.meta.env.VITE_DVERSION}`}
       </p>
     </div>
   );
