@@ -7,6 +7,10 @@ on:
 
 jobs:
   build_pr:
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
     uses: ./.github/workflows/build.yml
 
   publish:
@@ -22,9 +26,6 @@ jobs:
           name: ${{ needs.build_pr.outputs.artifact-name }}
           run-id: ${{ needs.build_pr.outputs.artifact-id }}
 
-      - name: Move the sbom into the webroot
-        run: mv ${{ needs.build_pr.outputs.sbom_path }} ${{ github.workspace }}/build/client/
-
       # Use the old action because the new one doesn't support getting the url output yet
       # https://github.com/cloudflare/wrangler-action/issues/300
       - name: Publish PR to Cloudflare
@@ -35,6 +36,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
           directory: build/client
+          branch: ${{ github.ref_name }}
 
       - name: Add a PR comment with the deploy URI
         uses: mshick/add-pr-comment@v2

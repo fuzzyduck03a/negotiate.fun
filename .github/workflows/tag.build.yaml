@@ -6,6 +6,10 @@ on:
       - 'v*.*.*'
 jobs:
   build_release:
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
     uses: ./.github/workflows/build.yml
 
   deployRelease:
@@ -30,6 +34,12 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch production --commit-hash ${{ github.sha }} --commit-msg "${{ github.event.head_commit.message }}" --commit-dirty=true
 
+      - name: Rename the source archive
+        run: mv ${{ needs.build_release.outputs.artifact-name }}.zip source.zip
+
+      - name: Create a dist archive
+        run: zip -r dist.zip build/client/*
+
       - name: Make a Github Release
         uses: softprops/action-gh-release@v2
         with:
@@ -37,5 +47,6 @@ jobs:
           make_latest: true
           fail_on_unmatched_files: true
           files: |
-            sbom.spdx.json
-            ${{ needs.build_release.outputs.artifact-name }}.zip
+            build/client/sbom.spdx.json
+            source.zip
+            dist.zip

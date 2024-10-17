@@ -8,6 +8,10 @@ on:
 jobs:
   build_main:
     uses: ./.github/workflows/build.yml
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
 
   publish:
     runs-on: ubuntu-latest
@@ -19,9 +23,6 @@ jobs:
         with:
           name: ${{ needs.build_main.outputs.artifact-name }}
           run-id: ${{ needs.build_main.outputs.artifact-id }}
-
-      - name: Move the sbom into the webroot
-        run: mv ${{ needs.build_main.outputs.sbom_path }} ${{ github.workspace }}/build/client/
 
       # Use the old action because the new one doesn't support getting the url output yet
       # https://github.com/cloudflare/wrangler-action/issues/300
