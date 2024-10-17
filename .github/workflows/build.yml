@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: MIT
+
+name: Common Build Workflow
+
+on:
+  workflow_call:
+    outputs:
+      artifact-id:
+        description: "The upload ID of build artifacts"
+        value: ${{ jobs.build_common.outputs.artifact-id  }}
+      artifact-name:
+        description: "The name of build artifacts"
+        value: ${{ jobs.build_common.outputs.d_version }}
+      sbom_path:
+        description: "The path to the SBOM output"
+        value: ${{ jobs.build_common.outputs.sbom_path }}
+jobs:
+  build_common:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      d_version: ${{ steps.ovars.outputs.d_version }}
+      sbom_path: ${{ steps.ovars.outputs.sbom_path }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set outputs
+        id: ovars
+        run: |
+          set -x
+          {
+            echo "sha_short=$(git rev-parse --short HEAD)"
+            echo "d_version='${{ github.ref_name }}-$(git rev-parse --short HEAD)'"
+            echo "sbom_path='${{ github.workspace }}/sbom.spdx.json'"
+            echo "dist_glob='${{ github.workspace }}/build/client/**'"
+          } > "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          VITE_DVERSION: ${{ steps.ovars.outputs.d_version  }}
+        run: npm install && npm run build
+
+      - name: Generate an SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          format: 'spdx-json'
+#          output-file: ${{ steps.vars.outputs.sbom_path }}
+
+      - name: Pack the build artifacts
+        run: zip -r ${{ steps.ovars.outputs.d_version }}.zip ./* -r
+
+      - name: Attest
+        uses: actions/attest-sbom@v1
+        with:
+          subject-path: ${{ steps.ovars.outputs.d_version }}.zip
+          sbom-path: ${{ steps.ovars.outputs.sbom_path }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        id: upload
+        with:
+          name: ${{ steps.ovars.outputs.d_version }}
+          path: |
+            ${{ steps.ovars.outputs.dist_glob }}
+            ${{ steps.ovars.outputs.d_version }}.zip
+            ${{ steps.ovars.outputs.sbom_path }}
+          retention-days: 5
+          if-no-files-found: error

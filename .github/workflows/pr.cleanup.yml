@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: MIT
+name: Cleanup PR
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  cleanup_cloudflare_preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install jq tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install jq
+
+      - name: Purge any old preview deployments for the PR
+        env:
+          API_HEADERS: '-s -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" -H "Content-Type:application/json"'
+          API_URL: 'https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/${{ vars.CLOUDFLARE_PROJECT_NAME }}/deployments'
+          JQ_FILTER: '.result[]| select(.environment == "preview" and .deployment_trigger.metadata.branch == "${{ github.ref_name }}").id'
+        run: |
+          set -exuo pipefail;
+          curl -X GET ${{ env.API_HEADERS }} "${{ env.API_URL }}" | jq -rc '${{ env.JQ_FILTER }}' | while read ID; do curl -X DELETE ${{ env.API_HEADERS }} "${{ env.API_URL }}/$ID?force=true"; done | jq -Ss
+
