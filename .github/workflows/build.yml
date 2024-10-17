@@ -52,7 +52,7 @@ jobs:
         with:
           format: 'spdx-json'
           # github-token: ${{ secrets.GITHUB_TOKEN }}
-          output-file: ${{ steps.ovars.outputs.sbom_path }}
+          output-file: build/client/${{ steps.ovars.outputs.sbom_path }}
 
       - name: Pack the build artifacts
         run: zip -r ${{ steps.ovars.outputs.d_version }}.zip ./* -r
@@ -61,16 +61,16 @@ jobs:
         uses: actions/attest-sbom@v1
         with:
           subject-path: ${{ steps.ovars.outputs.d_version }}.zip
-          sbom-path: ${{ steps.ovars.outputs.sbom_path }}
+          sbom-path: build/client/${{ steps.ovars.outputs.sbom_path }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         id: upload
         with:
           name: ${{ steps.ovars.outputs.d_version }}
+          include-hidden-files: true
           path: |
-            ${{ steps.ovars.outputs.dist_glob }}
+            build/client/
             ${{ steps.ovars.outputs.d_version }}.zip
-            ${{ steps.ovars.outputs.sbom_path }}
           retention-days: 5
           if-no-files-found: error
