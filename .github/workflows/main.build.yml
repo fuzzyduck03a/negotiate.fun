@@ -45,4 +45,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy build/client --commit-dirty=true --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ steps.ovars.outputs.sha_short }} --commit-message ${{ steps.ovars.outputs.commit_msg }}
+          command: pages deploy build/client --commit-dirty=true --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ steps.ovars.outputs.sha_short }} --commit-message "${{ steps.ovars.outputs.commit_msg }}"
