@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-name: Build & Publish PR to Cloudflare
+name: Build & Publish Head of Development to Cloudflare
 
 on:
   push:
@@ -24,6 +24,19 @@ jobs:
           name: ${{ needs.build_main.outputs.artifact-name }}
           run-id: ${{ needs.build_main.outputs.artifact-id }}
 
+      - name: Set outputs
+        id: ovars
+        env:
+          HASH: ${{ github.event.head_commit.id }}
+          MSG: ${{ github.event.head_commit.message }}
+        run: |
+          set -x
+          {
+            MSG_SHORT=$(echo -e "${MSG}" | head -n 1 )
+            echo "sha_short=${HASH}"
+            echo "commit_msg=${MSG_SHORT}"
+          } > "$GITHUB_OUTPUT"
+
       # Use the old action because the new one doesn't support getting the url output yet
       # https://github.com/cloudflare/wrangler-action/issues/300
       - name: Publish a new production release on Cloudflare
@@ -32,4 +45,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ github.sha }} --commit-msg "${{ github.event.head_commit.message }}" --commit-dirty=true
+          command: pages deploy build/client --commit-dirty=true --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ steps.ovars.outputs.sha_short }} --commit-message "${{ steps.ovars.outputs.commit_msg }}"
