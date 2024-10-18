@@ -33,7 +33,7 @@ jobs:
           set -x
           {
             MSG_SHORT=$(echo -e "${MSG}" | head -n 1)
-            echo "sha_short=$(git rev-parse --short ${HASH})"
+            echo "sha_short=${HASH:0:8}"
             echo "commit_msg=${MSG_SHORT}"
           } > "$GITHUB_OUTPUT"
 
