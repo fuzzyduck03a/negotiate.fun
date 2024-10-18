@@ -24,16 +24,13 @@ jobs:
           name: ${{ needs.build_main.outputs.artifact-name }}
           run-id: ${{ needs.build_main.outputs.artifact-id }}
 
-      - run: env | sort
-
-      - run: echo "${{ toJSON(github) }}"
-
       - name: Set outputs
         id: ovars
         run: |
           set -x
           {
-            echo "sha_short=$(git rev-parse --short ${{ github.sha }})"
+            echo "sha_short=$(git rev-parse --short ${{ github.event.head_commit.id }})"
+            echo "commit_msg=$(echo -e "${{ github.event.head_commit.message }}" | head -n 1)"
           } > "$GITHUB_OUTPUT"
 
       # Use the old action because the new one doesn't support getting the url output yet
@@ -44,4 +41,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy build/client --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ steps.ovars.outputs.sha_short }} --commit-message 'Merged PR \#${{ github.event.number }}' --commit-dirty=true
+          command: pages deploy build/client --commit-dirty=true --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ steps.ovars.outputs.sha_short }} --commit-message '${{ steps.ovars.outputs.commit_msg }}'
