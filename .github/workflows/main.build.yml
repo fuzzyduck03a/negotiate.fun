@@ -7,6 +7,7 @@ on:
       - main
 jobs:
   build_main:
+    if: github.event.pull_request.merged == true
     uses: ./.github/workflows/build.yml
     permissions:
       id-token: write
@@ -24,6 +25,14 @@ jobs:
           name: ${{ needs.build_main.outputs.artifact-name }}
           run-id: ${{ needs.build_main.outputs.artifact-id }}
 
+      - name: Set outputs
+        id: ovars
+        run: |
+          set -x
+          {
+            echo "sha_short=$(git rev-parse --short ${{ github.sha }})"
+          } > "$GITHUB_OUTPUT"
+
       # Use the old action because the new one doesn't support getting the url output yet
       # https://github.com/cloudflare/wrangler-action/issues/300
       - name: Publish a new production release on Cloudflare
@@ -32,4 +41,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy build/client --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ github.sha }} --commit-message '${{ github.event.head_commit.message }}' --commit-dirty=true
+          command: pages deploy build/client --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch main --commit-hash ${{ steps.ovars.outputs.sha_short }} --commit-message 'Merged PR \#${{ github.event.number }}' --commit-dirty=true
