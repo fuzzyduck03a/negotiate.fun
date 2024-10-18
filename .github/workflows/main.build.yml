@@ -24,6 +24,10 @@ jobs:
           name: ${{ needs.build_main.outputs.artifact-name }}
           run-id: ${{ needs.build_main.outputs.artifact-id }}
 
+      - run: env | sort
+
+      - run: echo "${{ fromJSON(github) }}"
+
       - name: Set outputs
         id: ovars
         run: |
