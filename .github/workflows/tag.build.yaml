@@ -26,13 +26,25 @@ jobs:
           name: ${{ needs.build_release.outputs.artifact-name }}
           run-id: ${{ needs.build_release.outputs.artifact-id }}
 
+      - name: Set outputs
+        id: ovars
+        env:
+          HASH: ${{ github.sha }}
+          MSG: ${{ github.ref_name }}
+        run: |
+          set -x
+          {
+            echo "sha_short=${HASH}"
+            echo "commit_msg=Creating release ${MSG}"
+          } > "$GITHUB_OUTPUT"
+
       - name: Publish a new production release on Cloudflare
         uses: cloudflare/wrangler-action@v3
         id: cloudflare-publish
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch production --commit-hash ${{ github.sha }} --commit-msg "${{ github.event.head_commit.message }}" --commit-dirty=true
+          command: pages deploy build/client --commit-dirty=true --project-name ${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch production --commit-hash ${{ steps.ovars.outputs.sha_short }} --commit-message "${{ steps.ovars.outputs.commit_msg }}"
 
       - name: Rename the source archive
         run: mv ${{ needs.build_release.outputs.artifact-name }}.zip source.zip
