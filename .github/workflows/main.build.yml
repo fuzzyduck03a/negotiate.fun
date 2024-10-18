@@ -26,11 +26,15 @@ jobs:
 
       - name: Set outputs
         id: ovars
+        env:
+          HASH: ${{ github.event.head_commit.id }}
+          MSG: ${{ github.event.head_commit.message }}
         run: |
           set -x
           {
-            echo "sha_short=$(git rev-parse --short ${{ github.event.head_commit.id }})"
-            echo "commit_msg=$(echo -e "${{ github.event.head_commit.message }}" | head -n 1)"
+            MSG_SHORT=$(echo -e "${MSG}" | head -n 1)
+            echo "sha_short=$(git rev-parse --short '${HASH}')"
+            echo "commit_msg=${MSG_SHORT}"
           } > "$GITHUB_OUTPUT"
 
       # Use the old action because the new one doesn't support getting the url output yet
