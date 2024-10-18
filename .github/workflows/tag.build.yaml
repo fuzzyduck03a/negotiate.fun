@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_release
     permissions:
-      contents: read
+      contents: write
       deployments: write
     name: Deploy to Cloudflare Pages & GitHub
     steps:
